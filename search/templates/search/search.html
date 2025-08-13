@@ -1,0 +1,145 @@
+{% extends "blog/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="text-center">Search</h3>
+                </div>
+                <div class="card-body">
+                    <form method="GET" action="{% url 'search:search' %}">
+                        <div class="input-group mb-3">
+                            <input type="text" class="form-control" name="q" placeholder="Search for posts, users..." 
+                                   value="{{ request.GET.q }}" id="search-input">
+                            <div class="input-group-append">
+                                <button class="btn btn-primary" type="submit">
+                                    <i class="fas fa-search"></i> Search
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="type" id="all" value="all" 
+                                   {% if request.GET.type == 'all' or not request.GET.type %}checked{% endif %}>
+                            <label class="form-check-label" for="all">All</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="type" id="posts" value="posts"
+                                   {% if request.GET.type == 'posts' %}checked{% endif %}>
+                            <label class="form-check-label" for="posts">Posts</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="type" id="users" value="users"
+                                   {% if request.GET.type == 'users' %}checked{% endif %}>
+                            <label class="form-check-label" for="users">Users</label>
+                        </div>
+                    </form>
+                    
+                    <!-- Search suggestions -->
+                    <div id="search-suggestions" class="mt-3" style="display: none;">
+                        <h6>Suggestions:</h6>
+                        <div id="suggestions-list"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recent searches -->
+            {% if user.is_authenticated %}
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5>Recent Searches</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for search in recent_searches %}
+                        <div class="col-md-6 mb-2">
+                            <a href="{% url 'search:search' %}?q={{ search.query }}" class="text-decoration-none">
+                                <span class="badge bg-secondary">{{ search.query }}</span>
+                                <small class="text-muted">{{ search.timestamp|timesince }} ago</small>
+                            </a>
+                        </div>
+                        {% empty %}
+                        <p class="text-muted">No recent searches</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('search-input');
+    const suggestionsDiv = document.getElementById('search-suggestions');
+    const suggestionsList = document.getElementById('suggestions-list');
+    let timeoutId;
+    
+    searchInput.addEventListener('input', function() {
+        clearTimeout(timeoutId);
+        const query = this.value.trim();
+        
+        if (query.length < 2) {
+            suggestionsDiv.style.display = 'none';
+            return;
+        }
+        
+        timeoutId = setTimeout(() => {
+            fetch(`{% url 'search:search_suggestions' %}?q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.suggestions && data.suggestions.length > 0) {
+                        suggestionsList.innerHTML = data.suggestions.map(suggestion => 
+                            `<div class="suggestion-item p-2 border-bottom" onclick="selectSuggestion('${suggestion}')">
+                                <i class="fas fa-search text-muted me-2"></i>${suggestion}
+                            </div>`
+                        ).join('');
+                        suggestionsDiv.style.display = 'block';
+                    } else {
+                        suggestionsDiv.style.display = 'none';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching suggestions:', error);
+                });
+        }, 300);
+    });
+    
+    // Hide suggestions when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!searchInput.contains(e.target) && !suggestionsDiv.contains(e.target)) {
+            suggestionsDiv.style.display = 'none';
+        }
+    });
+});
+
+function selectSuggestion(suggestion) {
+    document.getElementById('search-input').value = suggestion;
+    document.getElementById('search-suggestions').style.display = 'none';
+    document.querySelector('form').submit();
+}
+</script>
+
+<style>
+.suggestion-item {
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.suggestion-item:hover {
+    background-color: #f8f9fa;
+}
+
+#search-suggestions {
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    background: white;
+    max-height: 200px;
+    overflow-y: auto;
+}
+</style>
+{% endblock content %}

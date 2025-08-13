@@ -1,0 +1,356 @@
+{% extends "blog/base.html" %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Hero Section -->
+    <div class="hero-section text-center mb-5">
+        <div class="hero-content">
+            <h1 class="display-4 text-primary mb-3">
+                <i class="fas fa-globe-americas"></i> Welcome to SocialSphere
+            </h1>
+            <p class="lead text-muted">Your comprehensive social networking platform</p>
+            <div class="hero-badges">
+                <span class="badge badge-primary mr-2">Real-time</span>
+                <span class="badge badge-success mr-2">Advanced Search</span>
+                <span class="badge badge-info mr-2">Direct Messaging</span>
+                <span class="badge badge-warning">Mobile API</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-5">
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="stat-card bg-primary text-white">
+                <div class="stat-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 class="stat-number">{{ total_users|default:"0" }}</h3>
+                    <p class="stat-label">Total Users</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="stat-card bg-success text-white">
+                <div class="stat-icon">
+                    <i class="fas fa-file-alt"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 class="stat-number">{{ total_posts|default:"0" }}</h3>
+                    <p class="stat-label">Total Posts</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="stat-card bg-info text-white">
+                <div class="stat-icon">
+                    <i class="fas fa-comments"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 class="stat-number">{{ total_comments|default:"0" }}</h3>
+                    <p class="stat-label">Total Comments</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="stat-card bg-warning text-white">
+                <div class="stat-icon">
+                    <i class="fas fa-heart"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 class="stat-number">{{ total_likes|default:"0" }}</h3>
+                    <p class="stat-label">Total Likes</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feature Highlights -->
+    <div class="row mb-5">
+        <div class="col-lg-6 mb-4">
+            <div class="feature-card">
+                <div class="feature-icon bg-primary">
+                    <i class="fas fa-bell"></i>
+                </div>
+                <div class="feature-content">
+                    <h4>Real-time Notifications</h4>
+                    <p>Stay updated with instant notifications for likes, comments, and friend requests using WebSocket technology.</p>
+                    <a href="{% url 'show-notifications' %}" class="btn btn-outline-primary btn-sm">View Notifications</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 mb-4">
+            <div class="feature-card">
+                <div class="feature-icon bg-success">
+                    <i class="fas fa-search"></i>
+                </div>
+                <div class="feature-content">
+                    <h4>Advanced Search</h4>
+                    <p>Powerful Elasticsearch integration for lightning-fast, typo-tolerant search across posts and users.</p>
+                    <a href="{% url 'search:search' %}" class="btn btn-outline-success btn-sm">Start Searching</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 mb-4">
+            <div class="feature-card">
+                <div class="feature-icon bg-info">
+                    <i class="fas fa-comments"></i>
+                </div>
+                <div class="feature-content">
+                    <h4>Direct Messaging</h4>
+                    <p>Private chat rooms with real-time messaging, perfect for one-on-one conversations with friends.</p>
+                    <a href="{% url 'room-enroll' %}" class="btn btn-outline-info btn-sm">Open Chats</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 mb-4">
+            <div class="feature-card">
+                <div class="feature-icon bg-warning">
+                    <i class="fas fa-mobile-alt"></i>
+                </div>
+                <div class="feature-content">
+                    <h4>Mobile API</h4>
+                    <p>RESTful API endpoints for mobile applications with authentication and comprehensive data access.</p>
+                    <a href="{% url 'api:api-root' %}" class="btn btn-outline-warning btn-sm">Explore API</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    {% if user.is_authenticated %}
+    <div class="row">
+        <div class="col-lg-8 mb-4">
+            <div class="activity-card">
+                <h4 class="card-title">
+                    <i class="fas fa-clock"></i> Recent Activity
+                </h4>
+                <div class="activity-list">
+                    {% for post in recent_posts|slice:":5" %}
+                    <div class="activity-item">
+                        <div class="activity-avatar">
+                            <img src="{{ post.author.profile.image.url }}" alt="{{ post.author.username }}" class="rounded-circle">
+                        </div>
+                        <div class="activity-content">
+                            <p><strong>{{ post.author.username }}</strong> posted: "{{ post.title|truncatechars:50 }}"</p>
+                            <small class="text-muted">{{ post.date_posted|naturaltime }}</small>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted">No recent posts to show.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 mb-4">
+            <div class="quick-actions-card">
+                <h4 class="card-title">
+                    <i class="fas fa-bolt"></i> Quick Actions
+                </h4>
+                <div class="quick-actions">
+                    <a href="{% url 'post-create' %}" class="btn btn-primary btn-block mb-2">
+                        <i class="fas fa-plus"></i> Create Post
+                    </a>
+                    <a href="{% url 'search:search' %}" class="btn btn-outline-primary btn-block mb-2">
+                        <i class="fas fa-search"></i> Search
+                    </a>
+                    <a href="{% url 'friend:friend-request-list' %}" class="btn btn-outline-success btn-block mb-2">
+                        <i class="fas fa-user-plus"></i> Friend Requests
+                    </a>
+                    <a href="{% url 'profile' %}" class="btn btn-outline-info btn-block">
+                        <i class="fas fa-cog"></i> Settings
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Technology Stack -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="tech-stack-card text-center">
+                <h4 class="mb-4">
+                    <i class="fas fa-code"></i> Built with Modern Technologies
+                </h4>
+                <div class="tech-badges">
+                    <span class="tech-badge">Django 3.1+</span>
+                    <span class="tech-badge">Django Channels</span>
+                    <span class="tech-badge">Redis</span>
+                    <span class="tech-badge">Elasticsearch</span>
+                    <span class="tech-badge">Django REST Framework</span>
+                    <span class="tech-badge">WebSockets</span>
+                    <span class="tech-badge">Bootstrap 4</span>
+                    <span class="tech-badge">jQuery</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.dashboard-container {
+    padding: 20px 0;
+}
+
+.hero-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 60px 20px;
+    border-radius: 15px;
+    margin-bottom: 40px;
+}
+
+.hero-badges .badge {
+    font-size: 0.9rem;
+    padding: 8px 16px;
+    border-radius: 20px;
+}
+
+.stat-card {
+    border-radius: 15px;
+    padding: 25px;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+
+.stat-icon {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.stat-label {
+    margin: 0;
+    opacity: 0.9;
+}
+
+.feature-card {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: flex-start;
+    transition: transform 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-3px);
+}
+
+.feature-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+    margin-right: 20px;
+    flex-shrink: 0;
+}
+
+.feature-content h4 {
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.feature-content p {
+    color: #666;
+    margin-bottom: 15px;
+}
+
+.activity-card, .quick-actions-card, .tech-stack-card {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.card-title {
+    color: #333;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #f8f9fa;
+    padding-bottom: 10px;
+}
+
+.activity-item {
+    display: flex;
+    align-items: center;
+    padding: 15px 0;
+    border-bottom: 1px solid #f8f9fa;
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+}
+
+.activity-avatar img {
+    width: 40px;
+    height: 40px;
+    margin-right: 15px;
+}
+
+.activity-content p {
+    margin: 0;
+    color: #333;
+}
+
+.quick-actions .btn {
+    border-radius: 25px;
+    font-weight: 500;
+}
+
+.tech-badges {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+}
+
+.tech-badge {
+    background: #f8f9fa;
+    color: #495057;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    border: 1px solid #dee2e6;
+}
+
+@media (max-width: 768px) {
+    .hero-section {
+        padding: 40px 15px;
+    }
+    
+    .stat-card {
+        margin-bottom: 20px;
+    }
+    
+    .feature-card {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .feature-icon {
+        margin: 0 auto 15px auto;
+    }
+}
+</style>
+{% endblock %}
