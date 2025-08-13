@@ -135,16 +135,24 @@ It integrates multiple interactive modules — from real-time messaging to conte
     python manage.py runserver
   Now visit: http://127.0.0.1:8000/
 
+---
+
 # 🔮 Future Enhancements
 - AI-based content recommendations
 - Voice & group video calls
 - Hashtag-based trending system
 - Dark mode support
 
+---
+
 # 📜 License
 This project is licensed under the MIT License — see the LICENSE file for details.
+
+---
 
 # 📬 Contact
   Developer: Shriharee Panchal
   📧 Email: shriharee0004@gmail.com
   🌐 GitHub: shrihareepanchal
+
+---
